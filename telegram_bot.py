@@ -6,6 +6,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 import pytz
 from telegram import Bot
 
+# Assuming your server timezone is Toronto
+tz = pytz.timezone('America/Toronto')
 
 # Load flight data from the JSON file
 def load_flight_data():
@@ -95,22 +97,25 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         if next_flight:
 
-            # Flight ETA (destination_time)
-            destination_time_str = next_flight.get("destination_time")
+                # Get the destination time as a string (e.g., "16:43")
+                destination_time_str = next_flight.get("destination_time")
             
-            # Convert ETA to a datetime object
-            toronto_tz = pytz.timezone('America/Toronto')
-            current_time = datetime.now(toronto_tz)
-            eta_time = datetime.strptime(destination_time_str, "%H:%M").replace(year=current_time.year, month=current_time.month, day=current_time.day, tzinfo=toronto_tz)
-            
-            # If the ETA time has passed for today, we consider the next day
-            if eta_time < current_time:
-                eta_time += timedelta(days=1)
-            
-            # Calculate the time difference between now and ETA
-            time_diff = eta_time - current_time
-            arrival_in_minutes = time_diff.total_seconds() / 60  # Get the difference in minutes
+            if destination_time_str:
+                # Convert destination time string to a datetime object
+                destination_time = datetime.strptime(destination_time_str, "%H:%M")
+                destination_time = tz.localize(destination_time)  # Localize to Toronto timezone
+                
+                # Get the current time in the server's timezone
+                current_time = datetime.now(tz)
 
+                # Calculate the time difference in minutes
+                time_diff = destination_time - current_time
+                minutes_remaining = time_diff.total_seconds() / 60  # Convert seconds to minutes
+                minutes_remaining = max(0, round(minutes_remaining))  # Ensure it doesn't show negative minutes
+
+                arriving_in_msg = f"⏳ Arriving in approximately: {minutes_remaining} minutes"
+            else:
+                arriving_in_msg = "⏳ Destination time not available"
             
             msg = (
                 f"🛬 *Next Arrival Flight:*\n\n"

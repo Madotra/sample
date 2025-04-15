@@ -1,6 +1,8 @@
 import json
 from telegram import Update
 from datetime import datetime
+from telegram import BotCommand
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # Load flight data from the JSON file
@@ -8,11 +10,14 @@ def load_flight_data():
     with open("flight_data.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
-# /start command handler
+# Inside /start handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Hello! Send /next to get the next arriving flight info.")
-
-from datetime import datetime
+    keyboard = [["/next", "/flights"]]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text(
+        "Welcome to the YTZ Flight Bot! ✈️\nChoose an option below:",
+        reply_markup=reply_markup
+    )
 
 # /next command handler
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -97,6 +102,12 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
+    # Inside main() after app is created
+    app.bot.set_my_commands([
+        BotCommand("start", "Start the bot and get help"),
+        BotCommand("next", "Show the next arriving flight"),
+        BotCommand("all", "List all today’s flights"),
+    ])
 
     print("Bot is running...")
     app.run_polling()

@@ -16,7 +16,7 @@ from selenium.webdriver.chrome.service import Service
 # Set up logging with a timestamp in the log format
 logging.basicConfig(
     filename='/home/flight/sample/scraper_vm.log',
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
@@ -143,7 +143,8 @@ def get_fin_number(driver, flight_number):
     try:
         # Load the flight details page
         driver.get(details_url)
-
+        # Inside the loop fetching FIN numbers:
+        logging.info(f"Fetching FIN for flight {flight['flight_number']}")
         # Wait for the FIN number to be available
         WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.CLASS_NAME, "fin-number"))
@@ -170,10 +171,14 @@ def get_fin_number(driver, flight_number):
 
 try:
     # Fetch flights from both URLs
+    logging.info("Fetching flights from URL 1...")
     flights_data_1 = get_flights_data(driver, url_1)
+    
+    logging.info("Fetching flights from URL 2...")
     flights_data_2 = get_flights_data(driver, url_2)
 
     # Combine and remove duplicate flight entries
+    logging.info(f"Found {len(all_flights)} unique flights after merging and filtering.")
     all_flights_raw = flights_data_1 + flights_data_2
     seen = set()
     all_flights = []

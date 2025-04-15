@@ -1,31 +1,47 @@
+import json
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# Replace with your actual token
-TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
+# Load flight data from the JSON file
+def load_flight_data():
+    with open("flight_data.json", "r", encoding="utf-8") as f:
+        return json.load(f)
 
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Hello! I'm your flight information bot. Type /help to see what I can do.")
+# /start command handler
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Hello! Send /next to get the next arriving flight info.")
 
-def help_command(update: Update, context: CallbackContext):
-    update.message.reply_text("Use /get_flights to get the latest flight information.")
+# /next command handler
+async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        data = load_flight_data()
+        flight = data.get("next_arrival_flight")
 
+        if flight:
+            msg = (
+                f"✈️ Flight {flight['flight_number']} from {flight['origin_city']} "
+                f"arrives in {flight['destination_city']} at {flight['destination_time']}.\n"
+                f"Status: {flight['flight_status']}"
+            )
+            if "live_tracking_link" in flight:
+                msg += f"\n🔗 [Live Tracking]({flight['live_tracking_link']})"
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        else:
+            await update.message.reply_text("No upcoming flights found.")
+    except Exception as e:
+        await update.message.reply_text(f"Error reading flight data: {e}")
+
+# Main function to start the bot
 def main():
-    # Create the Updater and pass it your bot's token.
-    updater = Updater(TOKEN, use_context=True)
+    TOKEN = "YOUR_BOT_TOKEN_HERE"
 
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    app = ApplicationBuilder().token(TOKEN).build()
 
-    # Register handlers for different commands
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("next", next_flight))
 
-    # Start the Bot
-    updater.start_polling()
+    print("Bot is running...")
+    app.run_polling()
 
-    # Run the bot until you send a signal to stop
-    updater.idle()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

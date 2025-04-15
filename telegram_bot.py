@@ -6,6 +6,13 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 import pytz
 from telegram import Bot
 
+# Set up logging with a timestamp in the log format
+logging.basicConfig(
+    filename='/home/flight/sample/telegram_bot.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 # Assuming your server timezone is Toronto
 tz = pytz.timezone('America/Toronto')
 

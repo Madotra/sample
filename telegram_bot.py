@@ -49,37 +49,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# /next command handler - Show the next flight
+# /next command handler - Show the next flight from precomputed JSON field
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         data = load_flight_data()
-        flights = data.get("flights", [])
-        
-        if not flights:
-            await update.message.reply_text("No flights found.")
-            return
-        
-        # Get the current time in a format that matches the data format (e.g., HH:MM)
-        current_time = datetime.now().strftime("%H:%M")
-        
-        # Sort flights based on the 'origin_time' (departure time) and get the next one
-        flights_sorted = sorted(flights, key=lambda f: f["origin_time"])
-        
-        next_flight = None
-        for flight in flights_sorted:
-            # Check if the flight's origin_time is after the current time
-            if flight["origin_time"] >= current_time:
-                next_flight = flight
-                break
+        next_flight = data.get("next_arrival_flight")
 
         if next_flight:
-            msg = f"🛫 *Next Flight Information:*\n\n{format_flight_pretty(next_flight)}"
+            msg = f"🛬 *Next Arrival Flight:*\n\n{format_flight_pretty(next_flight)}"
             await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
         else:
-            await update.message.reply_text("No upcoming flights found.")
-    
+            await update.message.reply_text("No upcoming flights found in the data.")
+
     except Exception as e:
-        await update.message.reply_text(f"Error fetching flight data: {e}")
+        await update.message.reply_text(f"❌ Error fetching next flight:\n`{e}`", parse_mode=ParseMode.MARKDOWN)
 
 # /all_flights command handler
 async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):

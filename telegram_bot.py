@@ -90,6 +90,7 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for flight in flights:
             msg += format_flight_pretty(flight)
             msg += "\n"
+            msg += "\n"
         await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")

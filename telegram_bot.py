@@ -15,6 +15,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 from datetime import datetime
 
 # /next command handler
+# /next command handler
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         data = load_flight_data()
@@ -26,14 +27,27 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
             dest_time = datetime.strptime(dest_time_str, "%H:%M").replace(
                 year=now.year, month=now.month, day=now.day
             )
-            minutes_until_landing = int((dest_time - now).total_seconds() // 60)
+
+            time_diff = dest_time - now
+            total_minutes = int(time_diff.total_seconds() // 60)
+
+            # Format landing time nicely
+            if total_minutes < 1:
+                landing_str = "Landing now!"
+            elif total_minutes < 60:
+                landing_str = f"Landing in approximately {total_minutes} minute(s)."
+            else:
+                hours = total_minutes // 60
+                minutes = total_minutes % 60
+                landing_str = f"Landing in approximately {hours}h {minutes}m."
 
             msg = (
                 f"✈️ Flight {flight['flight_number']} from {flight['origin_city']} "
                 f"arrives in {flight['destination_city']} at {flight['destination_time']}.\n"
                 f"Status: {flight['flight_status']}\n"
-                f"🕓 Landing in approximately {minutes_until_landing} minutes."
+                f"🕓 {landing_str}"
             )
+
             if "live_tracking_link" in flight:
                 msg += f"\n🔗 [Live Tracking]({flight['live_tracking_link']})"
 
@@ -42,7 +56,6 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("No upcoming flights found.")
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")
-
 
 # Main function to start the bot
 def main():

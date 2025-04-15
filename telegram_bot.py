@@ -87,40 +87,49 @@ async def notify_if_flight_is_soon(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"[notify job error] {e}")
 
+def format_arrival_time_eta(destination_time_str):
+    if not destination_time_str:
+        return ""
+
+    try:
+        # Current time in Toronto (server is already in EDT/EST)
+        now = datetime.now()
+        eta = datetime.strptime(destination_time_str, "%H:%M").replace(
+            year=now.year, month=now.month, day=now.day
+        )
+
+        # Handle case where flight is after midnight (ETA < current time)
+        if eta < now:
+            eta = eta.replace(day=now.day + 1)
+
+        diff = eta - now
+        total_minutes = int(diff.total_seconds() / 60)
+
+        if total_minutes < 60:
+            return f"⏳ Arriving in approximately: {total_minutes} minutes"
+        else:
+            hours = total_minutes // 60
+            minutes = total_minutes % 60
+            return f"⏳ Arriving in approximately: {hours} hour{'s' if hours > 1 else ''} {minutes} minutes"
+
+    except Exception as e:
+        return ""
+
 
 # /next command handler - Show the next flight from precomputed JSON field
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
+        try:
         data = load_flight_data()
         next_flight = data.get("next_arrival_flight")
         last_updated = data.get("last_updated_at", "Unknown")
         
         if next_flight:
-            # Get the destination time as a string (e.g., "16:43")
-            destination_time_str = next_flight.get("destination_time")
-            
-            if destination_time_str:
-                # Convert destination time string to a datetime object
-                destination_time = datetime.strptime(destination_time_str, "%H:%M")
-                destination_time = tz.localize(destination_time)  # Localize to Toronto timezone
-                
-                # Get the current time in the server's timezone
-                current_time = datetime.now(tz)
-
-                # Calculate the time difference in minutes
-                time_diff = destination_time - current_time
-                minutes_remaining = time_diff.total_seconds() / 60  # Convert seconds to minutes
-                minutes_remaining = max(0, round(minutes_remaining))  # Ensure it doesn't show negative minutes
-
-                arriving_in_msg = f"⏳ Arriving in approximately: {minutes_remaining} minutes"
-            else:
-                arriving_in_msg = "⏳ Destination time not available"
-
+            eta_string = format_arrival_time_eta(next_flight.get("destination_time"))
             msg = (
                 f"🛬 *Next Arrival Flight:*\n\n"
                 f"{format_flight_pretty(next_flight)}\n"
+                f"{eta_string}\n"
                 f"🕒 _Last updated at: {last_updated}_"
-                f"{arriving_in_msg}"
             )
             await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
         else:

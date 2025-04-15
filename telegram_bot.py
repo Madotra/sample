@@ -54,9 +54,14 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         data = load_flight_data()
         next_flight = data.get("next_arrival_flight")
-
+        last_updated = data.get("last_updated_at", "Unknown")
+        
         if next_flight:
-            msg = f"🛬 *Next Arrival Flight:*\n\n{format_flight_pretty(next_flight)}"
+            msg = (
+                f"🛬 *Next Arrival Flight:*\n\n"
+                f"{format_flight_pretty(next_flight)}\n"
+                f"🕒 _Last updated at: {last_updated}_"
+            )
             await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
         else:
             await update.message.reply_text("No upcoming flights found in the data.")

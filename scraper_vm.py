@@ -12,6 +12,17 @@ from pprint import pprint  # For pretty printing the output
 import os
 from selenium.webdriver.chrome.service import Service
 
+# Set up logging with a timestamp in the log format
+logging.basicConfig(
+    filename='/home/flight/sample/scraper_vm.log',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+# Example of logging with a timestamp
+logging.debug("Starting scraper script...")
+
+
 # Get the absolute path to the chromedriver inside the repo folder
 CHROMEDRIVER_PATH = os.path.join(os.path.dirname(__file__), "chromedriver")
 service = Service(executable_path=CHROMEDRIVER_PATH)

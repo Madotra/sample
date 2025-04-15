@@ -119,8 +119,8 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg = (
                 f"🛬 *Next Arrival Flight:*\n\n"
                 f"{format_flight_pretty(next_flight)}\n"
-                f"⏳ Arriving in approximately: {round(arrival_in_minutes)} minutes\n"
                 f"🕒 _Last updated at: {last_updated}_"
+                f"{arriving_in_msg}"
             )
             await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
         else:

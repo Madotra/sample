@@ -42,7 +42,7 @@ def status_icon(status):
 
 # /start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = ["/next", "/all_flights"]
+    keyboard = [["/next", "/all_flights"]]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text(
         "Welcome to the YTZ Flight Bot! ✈️\nChoose an option below:",

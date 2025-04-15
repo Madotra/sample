@@ -15,7 +15,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 from datetime import datetime
 
 # /next command handler
-# /next command handler
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         data = load_flight_data()
@@ -56,6 +55,39 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("No upcoming flights found.")
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")
+
+# /flights command handler
+async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        data = load_flight_data()
+        flights = data.get("flights", [])
+
+        # Start building the message
+        msg = "*All Flights:*\n"
+
+        if flights:
+            for flight in flights:
+                msg += (
+                    f"• Flight {flight['flight_number']} from {flight['origin_city']}\n"
+                    f"  Departed at {flight['origin_time']}, Landing at {flight['destination_city']} at {flight['destination_time']}\n"
+                    f"  Status: {flight['flight_status']}\n"
+                    f"  Plane FIN: {flight['fin_number']}\n"
+                )
+
+                # Include live tracking link if available
+                if "live_tracking_link" in flight:
+                    msg += f"  🔗 [Live Tracking]({flight['live_tracking_link']})\n"
+
+        else:
+            msg += "No flights found."
+
+        # Send the message
+        await update.message.reply_text(msg, parse_mode="Markdown")
+
+    except Exception as e:
+        await update.message.reply_text(f"Error reading flight data: {e}")
+
+
 
 # Main function to start the bot
 def main():

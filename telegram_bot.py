@@ -13,7 +13,7 @@ def load_flight_data():
 
 # Inside /start handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["/next", "/flights"]]
+    keyboard = [["/next", "/all_flights"]]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text(
         "Welcome to the YTZ Flight Bot! ✈️\nChoose an option below:",

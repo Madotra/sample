@@ -78,13 +78,6 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")
 
-# /flight_by_number command handler
-async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Prompt the user to enter a flight number
-    await update.message.reply_text("Please provide a flight number to search for.")
-
-    # Wait for the next message which should contain the flight number
-    # The message will be handled by the next handler, which we'll define below
 
 # Flight number search handler
 async def search_flight_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -119,7 +112,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
-    app.add_handler(CommandHandler("flight_by_number", flight_by_number))
+    app.add_handler(CommandHandler("flight_by_number", search_flight_number))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, search_flight_number))
     
     app.bot.set_my_commands([

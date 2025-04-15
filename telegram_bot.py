@@ -49,6 +49,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
+async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(f"🆔 Your chat ID is:\n`{chat_id}`", parse_mode=ParseMode.MARKDOWN)
+
+
 # /next command handler - Show the next flight from precomputed JSON field
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -92,6 +97,8 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
+    app.add_handler(CommandHandler("id", get_chat_id))
+
     
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),

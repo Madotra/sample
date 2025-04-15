@@ -32,9 +32,24 @@ url_2 = f"https://www.aircanada.com/flifo/search?o=YOW&d=YTZ&t={today_date}&c=ac
 options = Options()
 options.binary_location = CHROME_BINARY_PATH
 
+# Add headless mode option
+# # Add headless mode option
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")
+options.add_argument("--window-size=1920,1080")
+options.add_argument("--disable-software-rasterizer")
+options.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+options.add_experimental_option("excludeSwitches", ["enable-automation"])
+options.add_experimental_option("useAutomationExtension", False)
+options.add_argument("--remote-debugging-port=9222")
+
+
 # Set up the Chrome WebDriver with the path and options
 service = Service(CHROMEDRIVER_PATH)
 driver = webdriver.Chrome(service=service, options=options)
+
 
 # Function to extract flight information from a given Air Canada FLIFO URL
 def get_flights_data(driver, url):

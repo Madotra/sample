@@ -118,18 +118,24 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /flights command handler with flight number search
 async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # Get the flight number from the user's message
-        flight_number = " ".join(context.args).strip().upper()  # Get flight number from message arguments
-
-        if not flight_number:
+        # Get the flight number from the user's message, strip extra spaces, and handle both formats
+        flight_input = " ".join(context.args).strip().upper()  # Get flight number from message arguments
+        
+        if not flight_input:
             await update.message.reply_text("Please provide a flight number to search for.")
             return
+        
+        # Remove any "AC" prefix (case-insensitive)
+        if flight_input.startswith("AC "):
+            flight_number = flight_input[3:].strip()
+        else:
+            flight_number = flight_input
         
         data = load_flight_data()  # Load the flight data
         flights = data.get("flights", [])
 
         # Find the flight with the specified flight number
-        flight = next((f for f in flights if f["flight_number"] == flight_number), None)
+        flight = next((f for f in flights if f["flight_number"].strip().upper() == flight_number), None)
 
         if flight:
             # Format the flight details
@@ -149,11 +155,10 @@ async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(msg, parse_mode="Markdown")
 
         else:
-            await update.message.reply_text(f"No flight found with number {flight_number}.")
+            await update.message.reply_text(f"Sorry, unable to find flight with number {flight_input}.")
 
     except Exception as e:
         await update.message.reply_text(f"Error fetching flight data: {e}")
-
 
 # Main function to start the bot
 def main():

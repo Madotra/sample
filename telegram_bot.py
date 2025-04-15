@@ -103,10 +103,13 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
             current_time = datetime.now(toronto_tz)
             eta_time = datetime.strptime(destination_time_str, "%H:%M").replace(year=current_time.year, month=current_time.month, day=current_time.day, tzinfo=toronto_tz)
             
+            # If the ETA time has passed for today, we consider the next day
+            if eta_time < current_time:
+                eta_time += timedelta(days=1)
+            
             # Calculate the time difference between now and ETA
             time_diff = eta_time - current_time
             arrival_in_minutes = time_diff.total_seconds() / 60  # Get the difference in minutes
-
 
             
             msg = (

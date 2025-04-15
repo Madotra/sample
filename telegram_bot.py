@@ -102,6 +102,7 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
+    app.add_handler(CommandHandler("flights", all_flights))
     # Inside main() after app is created
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),

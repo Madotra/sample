@@ -123,12 +123,12 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
-    app.add_handler(CommandHandler("all flights", all_flights))
+    app.add_handler(CommandHandler("all_flights", all_flights))
     # Inside main() after app is created
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),
         BotCommand("next", "Show the next arriving flight"),
-        BotCommand("all flights", "List all today’s flights"),
+        BotCommand("all_flights", "List all today’s flights"),
     ])
 
     print("Bot is running...")

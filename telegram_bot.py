@@ -64,6 +64,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Background job to notify when flight is within 5 minutes
 async def notify_if_flight_is_soon(context: ContextTypes.DEFAULT_TYPE):
     try:
+        logging.info(f"Inside notify_if_flight_is_soon Function")
         data = load_flight_data()
         next_flight = data.get("next_arrival_flight")
 

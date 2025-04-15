@@ -119,21 +119,21 @@ def format_arrival_time_eta(destination_time_str):
 # /next command handler - Show the next flight from precomputed JSON field
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
-        data = load_flight_data()
-        next_flight = data.get("next_arrival_flight")
-        last_updated = data.get("last_updated_at", "Unknown")
+            data = load_flight_data()
+            next_flight = data.get("next_arrival_flight")
+            last_updated = data.get("last_updated_at", "Unknown")
         
-        if next_flight:
-            eta_string = format_arrival_time_eta(next_flight.get("destination_time"))
-            msg = (
-                f"🛬 *Next Arrival Flight:*\n\n"
-                f"{format_flight_pretty(next_flight)}\n"
-                f"{eta_string}\n"
-                f"🕒 _Last updated at: {last_updated}_"
-            )
-            await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-        else:
-            await update.message.reply_text("No upcoming flights found in the data.")
+            if next_flight:
+                eta_string = format_arrival_time_eta(next_flight.get("destination_time"))
+                msg = (
+                    f"🛬 *Next Arrival Flight:*\n\n"
+                    f"{format_flight_pretty(next_flight)}\n"
+                    f"{eta_string}\n"
+                    f"🕒 _Last updated at: {last_updated}_"
+                )
+                await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+            else:
+                await update.message.reply_text("No upcoming flights found in the data.")
 
     except Exception as e:
         await update.message.reply_text(f"❌ Error fetching next flight:\n`{e}`", parse_mode=ParseMode.MARKDOWN)

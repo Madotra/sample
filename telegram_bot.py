@@ -135,8 +135,8 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text("No upcoming flights found in the data.")
 
-    except Exception as e:
-        await update.message.reply_text(f"❌ Error fetching next flight:\n`{e}`", parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            await update.message.reply_text(f"❌ Error fetching next flight:\n`{e}`", parse_mode=ParseMode.MARKDOWN)
 
 # /all_flights command handler
 async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):

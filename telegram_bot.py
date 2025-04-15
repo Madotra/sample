@@ -42,7 +42,7 @@ def status_icon(status):
 
 # /start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["/next", "/all_flights", "/flight_by_number"]]
+    keyboard = [["/next", "/all_flights"]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text(
         "Welcome to the YTZ Flight Bot! ✈️\nChoose an option below:",
@@ -78,31 +78,6 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")
 
-
-# Flight number search handler
-async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if context.user_data.get("awaiting_flight_number"):
-        user_input = update.message.text.strip().upper().replace(" ", "")
-        context.user_data["awaiting_flight_number"] = False
-
-        data = load_flight_data()
-        flights = data.get("flights", [])
-
-        for flight in flights:
-            stored_flight = flight.get("flight_number", "").upper().replace(" ", "")
-            # Support match on either full or partial number
-            if user_input == stored_flight or user_input == stored_flight.replace("AC", ""):
-                msg = f"✅ *Flight Found:*\n\n{format_flight_pretty(flight)}"
-
-                if "live_tracking_link" in flight:
-                    msg += f"\n🔗 [Live Tracking]({flight['live_tracking_link']})"
-
-                await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-                return
-
-        await update.message.reply_text("❌ Sorry, unable to find such a flight.")
-
-
 # Main function to start the bot
 def main():
     TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
@@ -112,14 +87,11 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
-    app.add_handler(CommandHandler("flight_by_number", flight_by_number))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, flight_by_number))
     
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),
         BotCommand("next", "Show the next arriving flight"),
         BotCommand("all_flights", "List all today’s flights"),
-        BotCommand("flight_by_number", "Search flight by its number"),
     ])
 
     print("Bot is running...")

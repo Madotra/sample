@@ -13,7 +13,7 @@ def load_flight_data():
 
 # Inside /start handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["/next", "/all_flights"]]
+    keyboard = [["/next", "/all_flights", "/flight_by_number"]]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text(
         "Welcome to the YTZ Flight Bot! ✈️\nChoose an option below:",
@@ -115,6 +115,46 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"❌ Error reading flight data:\n`{e}`", parse_mode=ParseMode.MARKDOWN)
 
 
+# /flights command handler with flight number search
+async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        # Get the flight number from the user's message
+        flight_number = " ".join(context.args).strip().upper()  # Get flight number from message arguments
+
+        if not flight_number:
+            await update.message.reply_text("Please provide a flight number to search for.")
+            return
+        
+        data = load_flight_data()  # Load the flight data
+        flights = data.get("flights", [])
+
+        # Find the flight with the specified flight number
+        flight = next((f for f in flights if f["flight_number"] == flight_number), None)
+
+        if flight:
+            # Format the flight details
+            msg = (
+                f"*Flight {flight['flight_number']} Information:*\n"
+                f"• From: {flight['origin_city']} to {flight['destination_city']}\n"
+                f"• Departed at: {flight['origin_time']}\n"
+                f"• Landing at: {flight['destination_time']}\n"
+                f"• Status: {flight['flight_status']}\n"
+                f"• Plane FIN: {flight['fin_number']}\n"
+            )
+
+            # Include live tracking link if available
+            if "live_tracking_link" in flight:
+                msg += f"  🔗 [Live Tracking]({flight['live_tracking_link']})\n"
+
+            await update.message.reply_text(msg, parse_mode="Markdown")
+
+        else:
+            await update.message.reply_text(f"No flight found with number {flight_number}.")
+
+    except Exception as e:
+        await update.message.reply_text(f"Error fetching flight data: {e}")
+
+
 # Main function to start the bot
 def main():
     TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
@@ -124,11 +164,13 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
+    app.add_handler(CommandHandler("flight_by_number", flight_by_number))
     # Inside main() after app is created
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),
         BotCommand("next", "Show the next arriving flight"),
         BotCommand("all_flights", "List all today’s flights"),
+        BotCommand("flight_by_number", "Search flight by its number"),
     ])
 
     print("Bot is running...")

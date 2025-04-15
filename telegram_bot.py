@@ -1,8 +1,5 @@
 import json
-from telegram import Update
-from datetime import datetime
-from telegram import BotCommand
-from telegram import ReplyKeyboardMarkup
+from telegram import Update, BotCommand, ReplyKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
@@ -11,57 +8,7 @@ def load_flight_data():
     with open("flight_data.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
-# Inside /start handler
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["/next", "/all_flights", "/flight_by_number"]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text(
-        "Welcome to the YTZ Flight Bot! ✈️\nChoose an option below:",
-        reply_markup=reply_markup
-    )
-
-# /next command handler
-async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        data = load_flight_data()
-        flight = data.get("next_arrival_flight")
-
-        if flight:
-            now = datetime.now()
-            dest_time_str = flight["destination_time"]
-            dest_time = datetime.strptime(dest_time_str, "%H:%M").replace(
-                year=now.year, month=now.month, day=now.day
-            )
-
-            time_diff = dest_time - now
-            total_minutes = int(time_diff.total_seconds() // 60)
-
-            # Format landing time nicely
-            if total_minutes < 1:
-                landing_str = "Landing now!"
-            elif total_minutes < 60:
-                landing_str = f"Landing in approximately {total_minutes} minute(s)."
-            else:
-                hours = total_minutes // 60
-                minutes = total_minutes % 60
-                landing_str = f"Landing in approximately {hours}h {minutes}m."
-
-            msg = (
-                f"✈️ Flight {flight['flight_number']} from {flight['origin_city']} "
-                f"arrives in {flight['destination_city']} at {flight['destination_time']}.\n"
-                f"Status: {flight['flight_status']}\n"
-                f"🕓 {landing_str}"
-            )
-
-            if "live_tracking_link" in flight:
-                msg += f"\n🔗 [Live Tracking]({flight['live_tracking_link']})"
-
-            await update.message.reply_text(msg, parse_mode="Markdown")
-        else:
-            await update.message.reply_text("No upcoming flights found.")
-    except Exception as e:
-        await update.message.reply_text(f"Error reading flight data: {e}")
-
+# Function to format flight details in a pretty way
 def format_flight_pretty(flight):
     return (
         f"✈️ *{flight['flight_number']}*\n"
@@ -71,6 +18,7 @@ def format_flight_pretty(flight):
         f"Plane: {flight['fin_number'] or 'N/A'}"
     )
 
+# Function to return the appropriate status icon based on the flight status
 def status_icon(status):
     if status.lower() in ["arrived", "landed"]:
         return "✅"
@@ -85,90 +33,66 @@ def status_icon(status):
     else:
         return "ℹ️"
 
+# /start command handler
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [["/next", "/all_flights", "/flight_by_number"]]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text(
+        "Welcome to the YTZ Flight Bot! ✈️\nChoose an option below:",
+        reply_markup=reply_markup
+    )
 
-# /all flights command handler
+# /next command handler
+async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        await update.message.reply_text("This is where the next flight information will go.")
+    except Exception as e:
+        await update.message.reply_text(f"Error reading flight data: {e}")
+
+# /all_flights command handler
 async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         data = load_flight_data()
         flights = data.get("flights", [])
-
-        if not flights:
-            await update.message.reply_text("No flights found.", parse_mode=ParseMode.MARKDOWN)
-            return
-
-        message = "📋 *All Flights to Toronto YTZ:*\n\n"
-        messages = []
-
+        msg = "*All Flights:*\n"
         for flight in flights:
-            flight_text = format_flight_pretty(flight) + "\n\n"
-            if len(message) + len(flight_text) > 3900:  # Telegram limit is 4096
-                messages.append(message)
-                message = ""
-            message += flight_text
-
-        messages.append(message)
-
-        for msg in messages:
-            await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-
+            msg += format_flight_pretty(flight)
+            msg += "\n"
+        await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
-        await update.message.reply_text(f"❌ Error reading flight data:\n`{e}`", parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(f"Error reading flight data: {e}")
 
-
-# /flights command handler with flight number search
-# /flights command handler with flight number search
+# /flight_by_number command handler
 async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # Get the flight number from the user's message, strip extra spaces, and handle both formats
-        flight_input = " ".join(context.args).strip().upper()  # Get flight number from message arguments
+        flight_input = " ".join(context.args).strip().upper()
         
         if not flight_input:
             await update.message.reply_text("Please provide a flight number to search for.")
             return
         
-        # Remove any "AC" prefix (case-insensitive)
         if flight_input.startswith("AC "):
             flight_number = flight_input[3:].strip()
         else:
             flight_number = flight_input
         
-        # Load flight data
-        data = load_flight_data()  # Load the flight data
+        data = load_flight_data()
         flights = data.get("flights", [])
-
-        # Debug: Check if we are extracting the correct flight number
-        print(f"Searching for flight number: {flight_number}")
-
-        # Find the flight with the specified flight number
-        flight = next((f for f in flights if f["flight_number"].strip().replace("AC", "").strip() == flight_number), None)
-
+        
+        flight = next((f for f in flights if f["flight_number"].replace("AC", "").strip() == flight_number), None)
+        
         if flight:
-            # Format the flight details
-            msg = (
-                f"*Flight {flight['flight_number']} Information:*\n"
-                f"• From: {flight['origin_city']} to {flight['destination_city']}\n"
-                f"• Departed at: {flight['origin_time']}\n"
-                f"• Landing at: {flight['destination_time']}\n"
-                f"• Status: {flight['flight_status']}\n"
-                f"• Plane FIN: {flight['fin_number']}\n"
-            )
-
-            # Include live tracking link if available
-            if "live_tracking_link" in flight:
-                msg += f"  🔗 [Live Tracking]({flight['live_tracking_link']})\n"
-
-            await update.message.reply_text(msg, parse_mode="Markdown")
-
+            msg = format_flight_pretty(flight)
+            await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
         else:
             await update.message.reply_text(f"Sorry, unable to find flight with number {flight_input}.")
-
+    
     except Exception as e:
         await update.message.reply_text(f"Error fetching flight data: {e}")
 
-
 # Main function to start the bot
 def main():
-    TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
+    TOKEN = "YOUR_BOT_TOKEN"
 
     app = ApplicationBuilder().token(TOKEN).build()
 
@@ -176,7 +100,7 @@ def main():
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
     app.add_handler(CommandHandler("flight_by_number", flight_by_number))
-    # Inside main() after app is created
+    
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),
         BotCommand("next", "Show the next arriving flight"),

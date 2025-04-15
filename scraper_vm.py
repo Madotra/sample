@@ -17,7 +17,7 @@ CHROMEDRIVER_PATH = os.path.join(os.path.dirname(__file__), "chromedriver")
 service = Service(executable_path=CHROMEDRIVER_PATH)
 
 # Path to the Chrome binary (Google Chrome for Testing version)
-CHROME_BINARY_PATH = "/snap/bin/chromium"
+CHROME_BINARY_PATH = "/usr/bin/google-chrome"
 
 # Get today's date in the format YYYYMMDD (e.g., 20250413)
 today_date = datetime.now().strftime("%Y%m%d")

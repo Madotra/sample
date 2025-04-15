@@ -3,6 +3,7 @@ from telegram import Update
 from datetime import datetime
 from telegram import BotCommand
 from telegram import ReplyKeyboardMarkup
+from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # Load flight data from the JSON file
@@ -61,37 +62,57 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")
 
+def format_flight_pretty(flight):
+    return (
+        f"✈️ *{flight['flight_number']}*\n"
+        f"From: {flight['origin_city']}\n"
+        f"🕑 Departed: {flight['origin_time']} | ETA: {flight['destination_time']}\n"
+        f"📍 Status: {status_icon(flight['flight_status'])} {flight['flight_status']} | "
+        f"Plane: {flight['fin_number'] or 'N/A'}"
+    )
+
+def status_icon(status):
+    if status.lower() in ["arrived", "landed"]:
+        return "✅"
+    elif "on time" in status.lower():
+        return "🟢"
+    elif "delayed" in status.lower():
+        return "⚠️"
+    elif "in flight" in status.lower():
+        return "✈️"
+    elif "early" in status.lower():
+        return "⏱"
+    else:
+        return "ℹ️"
+
+
 # /flights command handler
 async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         data = load_flight_data()
         flights = data.get("flights", [])
 
-        # Start building the message
-        msg = "*All Flights:*\n"
+        if not flights:
+            await update.message.reply_text("No flights found.", parse_mode=ParseMode.MARKDOWN)
+            return
 
-        if flights:
-            for flight in flights:
-                msg += (
-                    f"• Flight {flight['flight_number']} from {flight['origin_city']}\n"
-                    f"  Departed at {flight['origin_time']}, Landing at {flight['destination_city']} at {flight['destination_time']}\n"
-                    f"  Status: {flight['flight_status']}\n"
-                    f"  Plane FIN: {flight['fin_number']}\n"
-                )
+        message = "📋 *All Flights to Toronto YTZ:*\n\n"
+        messages = []
 
-                # Include live tracking link if available
-                if "live_tracking_link" in flight:
-                    msg += f"  🔗 [Live Tracking]({flight['live_tracking_link']})\n"
+        for flight in flights:
+            flight_text = format_flight_pretty(flight) + "\n\n"
+            if len(message) + len(flight_text) > 3900:  # Telegram limit is 4096
+                messages.append(message)
+                message = ""
+            message += flight_text
 
-        else:
-            msg += "No flights found."
+        messages.append(message)
 
-        # Send the message
-        await update.message.reply_text(msg, parse_mode="Markdown")
+        for msg in messages:
+            await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
     except Exception as e:
-        await update.message.reply_text(f"Error reading flight data: {e}")
-
+        await update.message.reply_text(f"❌ Error reading flight data:\n`{e}`", parse_mode=ParseMode.MARKDOWN)
 
 
 # Main function to start the bot

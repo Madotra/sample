@@ -234,4 +234,5 @@ output_data = {
 with open("flight_data.json", "w", encoding="utf-8") as f:
     json.dump(output_data, f, ensure_ascii=False, indent=4)
 
+logging.info(f"Saving flight_data.json to: {os.getcwd()}")
 print("Flight data saved to flight_data.json")

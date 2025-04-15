@@ -1,6 +1,7 @@
 import time
 import json
 import random
+import logging
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service

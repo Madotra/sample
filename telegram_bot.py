@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from telegram import Update, BotCommand, ReplyKeyboardMarkup
 from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 
 # Load flight data from the JSON file
 def load_flight_data():

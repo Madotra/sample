@@ -178,7 +178,6 @@ try:
     flights_data_2 = get_flights_data(driver, url_2)
 
     # Combine and remove duplicate flight entries
-    logging.info(f"Found {len(all_flights)} unique flights after merging and filtering.")
     all_flights_raw = flights_data_1 + flights_data_2
     seen = set()
     all_flights = []

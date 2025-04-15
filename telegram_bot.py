@@ -96,9 +96,8 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
         last_updated = data.get("last_updated_at", "Unknown")
         
         if next_flight:
-
-                # Get the destination time as a string (e.g., "16:43")
-                destination_time_str = next_flight.get("destination_time")
+            # Get the destination time as a string (e.g., "16:43")
+            destination_time_str = next_flight.get("destination_time")
             
             if destination_time_str:
                 # Convert destination time string to a datetime object
@@ -116,7 +115,7 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 arriving_in_msg = f"⏳ Arriving in approximately: {minutes_remaining} minutes"
             else:
                 arriving_in_msg = "⏳ Destination time not available"
-            
+
             msg = (
                 f"🛬 *Next Arrival Flight:*\n\n"
                 f"{format_flight_pretty(next_flight)}\n"

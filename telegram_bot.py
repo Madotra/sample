@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from telegram import Update, BotCommand, ReplyKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -10,13 +11,19 @@ def load_flight_data():
 
 # Function to format flight details in a pretty way
 def format_flight_pretty(flight):
-    return (
+    msg = (
         f"✈️ *{flight['flight_number']}*\n"
         f"From: {flight['origin_city']}\n"
         f"🕑 Departed: {flight['origin_time']} | ETA: {flight['destination_time']}\n"
         f"📍 Status: {status_icon(flight['flight_status'])} {flight['flight_status']} | "
         f"Plane: {flight['fin_number'] or 'N/A'}"
     )
+
+    # Check if live tracking link is available and add it
+    if "live_tracking_link" in flight:
+        msg += f"\n🔗 [Live Tracking]({flight['live_tracking_link']})"
+
+    return msg
 
 # Function to return the appropriate status icon based on the flight status
 def status_icon(status):
@@ -42,12 +49,37 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# /next command handler
+# /next command handler - Show the next flight
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        await update.message.reply_text("This is where the next flight information will go.")
+        data = load_flight_data()
+        flights = data.get("flights", [])
+        
+        if not flights:
+            await update.message.reply_text("No flights found.")
+            return
+        
+        # Get the current time in a format that matches the data format (e.g., HH:MM)
+        current_time = datetime.now().strftime("%H:%M")
+        
+        # Sort flights based on the 'origin_time' (departure time) and get the next one
+        flights_sorted = sorted(flights, key=lambda f: f["origin_time"])
+        
+        next_flight = None
+        for flight in flights_sorted:
+            # Check if the flight's origin_time is after the current time
+            if flight["origin_time"] >= current_time:
+                next_flight = flight
+                break
+
+        if next_flight:
+            msg = f"🛫 *Next Flight Information:*\n\n{format_flight_pretty(next_flight)}"
+            await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+        else:
+            await update.message.reply_text("No upcoming flights found.")
+    
     except Exception as e:
-        await update.message.reply_text(f"Error reading flight data: {e}")
+        await update.message.reply_text(f"Error fetching flight data: {e}")
 
 # /all_flights command handler
 async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -92,7 +124,7 @@ async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Main function to start the bot
 def main():
-    TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
+    TOKEN = "YOUR_BOT_TOKEN"
 
     app = ApplicationBuilder().token(TOKEN).build()
 

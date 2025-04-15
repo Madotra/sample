@@ -80,7 +80,7 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # Flight number search handler
-async def search_flight_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get("awaiting_flight_number"):
         user_input = update.message.text.strip().upper().replace(" ", "")
         context.user_data["awaiting_flight_number"] = False
@@ -112,7 +112,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
-    app.add_handler(CommandHandler("flight_by_number", search_flight_number))
+    app.add_handler(CommandHandler("flight_by_number", flight_by_number))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, search_flight_number))
     
     app.bot.set_my_commands([

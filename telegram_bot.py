@@ -3,6 +3,9 @@ from datetime import datetime
 from telegram import Update, BotCommand, ReplyKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+import pytz
+from telegram import Bot
+
 
 # Load flight data from the JSON file
 def load_flight_data():
@@ -49,9 +52,38 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    await update.message.reply_text(f"🆔 Your chat ID is:\n`{chat_id}`", parse_mode=ParseMode.MARKDOWN)
+# Background job to notify when flight is within 5 minutes
+async def notify_if_flight_is_soon(context: ContextTypes.DEFAULT_TYPE):
+    try:
+        data = load_flight_data()
+        next_flight = data.get("next_arrival_flight")
+
+        if not next_flight:
+            return
+
+        # Extract flight time in HH:MM format
+        flight_time_str = next_flight.get("destination_time")
+        if not flight_time_str:
+            return
+
+        # Parse and localize the flight time to Toronto timezone
+        now = datetime.now(pytz.timezone("America/Toronto"))
+        flight_time = datetime.strptime(flight_time_str, "%H:%M").replace(
+            year=now.year, month=now.month, day=now.day, tzinfo=pytz.timezone("America/Toronto")
+        )
+
+        # Handle case where flight is after midnight (past current time)
+        if flight_time < now:
+            flight_time = flight_time.replace(day=now.day + 1)
+
+        # Check if flight is within 5 minutes
+        minutes_left = (flight_time - now).total_seconds() / 60
+        if 0 < minutes_left <= 5:
+            msg = f"🚨 *Flight Arriving Soon!*\n\n{format_flight_pretty(next_flight)}"
+            await context.bot.send_message(chat_id=6207265706, text=msg, parse_mode=ParseMode.MARKDOWN)
+
+    except Exception as e:
+        print(f"[notify job error] {e}")
 
 
 # /next command handler - Show the next flight from precomputed JSON field
@@ -94,10 +126,13 @@ def main():
 
     app = ApplicationBuilder().token(TOKEN).build()
 
+    # Register your command handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
-    app.add_handler(CommandHandler("id", get_chat_id))
+
+    # Schedule background job
+    app.job_queue.run_repeating(notify_if_flight_is_soon, interval=60, first=10)
 
     
     app.bot.set_my_commands([
@@ -106,6 +141,7 @@ def main():
         BotCommand("all_flights", "List all today’s flights"),
     ])
 
+    # Start the bot
     print("Bot is running...")
     app.run_polling()
 

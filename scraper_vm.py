@@ -67,7 +67,7 @@ driver = webdriver.Chrome(service=service, options=options)
 def get_flights_data(driver, url):
     driver.get(url)
     # Wait until the flight cards are present on the page
-    WebDriverWait(driver, 15).until(
+    WebDriverWait(driver, 60).until(
         EC.presence_of_element_located((By.CLASS_NAME, "ac-card"))
     )
 
@@ -145,7 +145,7 @@ def get_fin_number(driver, flight_number):
         driver.get(details_url)
 
         # Wait for the FIN number to be available
-        WebDriverWait(driver, 15).until(
+        WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.CLASS_NAME, "fin-number"))
         )
 

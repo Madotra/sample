@@ -13,6 +13,8 @@ from pprint import pprint  # For pretty printing the output
 import os
 from selenium.webdriver.chrome.service import Service
 
+logging.info(f"Current working directory is: {os.getcwd()}")
+
 # Set up logging with a timestamp in the log format
 logging.basicConfig(
     filename='/home/flight/sample/scraper_vm.log',

@@ -97,31 +97,37 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # /flight_by_number command handler
 async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        flight_input = " ".join(context.args).strip().upper()
-        
-        if not flight_input:
-            await update.message.reply_text("Please provide a flight number to search for.")
-            return
-        
-        if flight_input.startswith("AC "):
-            flight_number = flight_input[3:].strip()
-        else:
-            flight_number = flight_input
-        
-        data = load_flight_data()
-        flights = data.get("flights", [])
-        
-        flight = next((f for f in flights if f["flight_number"].replace("AC", "").strip() == flight_number), None)
-        
-        if flight:
-            msg = format_flight_pretty(flight)
-            await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-        else:
-            await update.message.reply_text(f"Sorry, unable to find flight with number {flight_input}.")
-    
-    except Exception as e:
-        await update.message.reply_text(f"Error fetching flight data: {e}")
+    # Prompt the user to enter a flight number
+    await update.message.reply_text("Please provide a flight number to search for.")
+
+    # Wait for the next message which should contain the flight number
+    # The message will be handled by the next handler, which we'll define below
+
+# Flight number search handler
+async def search_flight_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    flight_number = update.message.text.strip()
+
+    data = load_flight_data()
+    flights = data.get("flights", [])
+
+    # Remove any prefix like 'AC' if present
+    flight_number = flight_number.replace("AC", "").strip()
+
+    # Search for the flight by number
+    matching_flight = None
+    for flight in flights:
+        if flight["flight_number"] == flight_number:
+            matching_flight = flight
+            break
+
+    if matching_flight:
+        # If a match is found, format and send the flight details
+        msg = format_flight_pretty(matching_flight)
+        await update.message.reply_text(msg, parse_mode="Markdown")
+    else:
+        # If no match is found, inform the user
+        await update.message.reply_text("Sorry, unable to find such a flight.")
+
 
 # Main function to start the bot
 def main():
@@ -133,6 +139,7 @@ def main():
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
     app.add_handler(CommandHandler("flight_by_number", flight_by_number))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, search_flight_number))
     
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),

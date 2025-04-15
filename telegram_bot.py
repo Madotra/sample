@@ -33,7 +33,7 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Main function to start the bot
 def main():
-    TOKEN = "YOUR_BOT_TOKEN_HERE"
+    TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
 
     app = ApplicationBuilder().token(TOKEN).build()
 

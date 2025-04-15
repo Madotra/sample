@@ -208,7 +208,7 @@ except Exception as e:
 
 # Prepare output data
 output_data = {
-    "last_updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Add current time here,
+    "last_updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "total_flights": len(all_flights),
     "next_arrival_flight": next_flight,
     "flights": all_flights

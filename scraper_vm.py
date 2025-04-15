@@ -9,9 +9,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pprint import pprint  # For pretty printing the output
+import os
+from selenium.webdriver.chrome.service import Service
 
-# Path to the ChromeDriver executable
-CHROMEDRIVER_PATH = "/usr/local/bin/chromedriver"
+# Get the absolute path to the chromedriver inside the repo folder
+CHROMEDRIVER_PATH = os.path.join(os.path.dirname(__file__), "chromedriver")
+service = Service(executable_path=CHROMEDRIVER_PATH)
 
 # Path to the Chrome binary (Google Chrome for Testing version)
 CHROME_BINARY_PATH = "/snap/bin/chromium"

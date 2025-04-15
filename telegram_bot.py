@@ -116,6 +116,7 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # /flights command handler with flight number search
+# /flights command handler with flight number search
 async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         # Get the flight number from the user's message, strip extra spaces, and handle both formats
@@ -131,11 +132,15 @@ async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             flight_number = flight_input
         
+        # Load flight data
         data = load_flight_data()  # Load the flight data
         flights = data.get("flights", [])
 
+        # Debug: Check if we are extracting the correct flight number
+        print(f"Searching for flight number: {flight_number}")
+
         # Find the flight with the specified flight number
-        flight = next((f for f in flights if f["flight_number"].strip().upper() == flight_number), None)
+        flight = next((f for f in flights if f["flight_number"].strip().replace("AC", "").strip() == flight_number), None)
 
         if flight:
             # Format the flight details
@@ -159,6 +164,7 @@ async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         await update.message.reply_text(f"Error fetching flight data: {e}")
+
 
 # Main function to start the bot
 def main():

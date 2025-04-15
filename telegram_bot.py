@@ -127,6 +127,7 @@ def format_arrival_time_eta(destination_time_str):
 # /next command handler - Show the next flight from precomputed JSON field
 async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
+            logging.info(f"Inside next_flight Function")
             data = load_flight_data()
             next_flight = data.get("next_arrival_flight")
             last_updated = data.get("last_updated_at", "Unknown")
@@ -149,6 +150,7 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /all_flights command handler
 async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        logging.info(f"Inside all_flights Function")
         data = load_flight_data()
         flights = data.get("flights", [])
         msg = "*All Flights:*\n"
@@ -162,6 +164,7 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Main function to start the bot
 def main():
+    logging.info(f"Inside main Function")
     TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
 
     app = ApplicationBuilder().token(TOKEN).build()

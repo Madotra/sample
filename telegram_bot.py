@@ -88,28 +88,26 @@ async def flight_by_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Flight number search handler
 async def search_flight_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    flight_number = update.message.text.strip()
+    if context.user_data.get("awaiting_flight_number"):
+        user_input = update.message.text.strip().upper().replace(" ", "")
+        context.user_data["awaiting_flight_number"] = False
 
-    data = load_flight_data()
-    flights = data.get("flights", [])
+        data = load_flight_data()
+        flights = data.get("flights", [])
 
-    # Remove any prefix like 'AC' if present
-    flight_number = flight_number.replace("AC", "").strip()
+        for flight in flights:
+            stored_flight = flight.get("flight_number", "").upper().replace(" ", "")
+            # Support match on either full or partial number
+            if user_input == stored_flight or user_input == stored_flight.replace("AC", ""):
+                msg = f"✅ *Flight Found:*\n\n{format_flight_pretty(flight)}"
 
-    # Search for the flight by number
-    matching_flight = None
-    for flight in flights:
-        if flight["flight_number"] == flight_number:
-            matching_flight = flight
-            break
+                if "live_tracking_link" in flight:
+                    msg += f"\n🔗 [Live Tracking]({flight['live_tracking_link']})"
 
-    if matching_flight:
-        # If a match is found, format and send the flight details
-        msg = format_flight_pretty(matching_flight)
-        await update.message.reply_text(msg, parse_mode="Markdown")
-    else:
-        # If no match is found, inform the user
-        await update.message.reply_text("Sorry, unable to find such a flight.")
+                await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+                return
+
+        await update.message.reply_text("❌ Sorry, unable to find such a flight.")
 
 
 # Main function to start the bot

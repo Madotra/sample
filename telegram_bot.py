@@ -94,9 +94,25 @@ async def next_flight(update: Update, context: ContextTypes.DEFAULT_TYPE):
         last_updated = data.get("last_updated_at", "Unknown")
         
         if next_flight:
+
+            # Flight ETA (destination_time)
+            destination_time_str = next_flight.get("destination_time")
+            
+            # Convert ETA to a datetime object
+            toronto_tz = pytz.timezone('America/Toronto')
+            current_time = datetime.now(toronto_tz)
+            eta_time = datetime.strptime(destination_time_str, "%H:%M").replace(year=current_time.year, month=current_time.month, day=current_time.day, tzinfo=toronto_tz)
+            
+            # Calculate the time difference between now and ETA
+            time_diff = eta_time - current_time
+            arrival_in_minutes = time_diff.total_seconds() / 60  # Get the difference in minutes
+
+
+            
             msg = (
                 f"🛬 *Next Arrival Flight:*\n\n"
                 f"{format_flight_pretty(next_flight)}\n"
+                f"⏳ Arriving in approximately: {round(arrival_in_minutes)} minutes\n"
                 f"🕒 _Last updated at: {last_updated}_"
             )
             await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)

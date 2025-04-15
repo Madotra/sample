@@ -233,8 +233,9 @@ output_data = {
 }
 
 # Save the flight data to a JSON file
-with open("flight_data.json", "w", encoding="utf-8") as f:
-    json.dump(output_data, f, ensure_ascii=False, indent=4)
 
-logging.info(f"Saving flight_data.json to: {os.getcwd()}")
+output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flight_data.json")
+with open(output_path, "w", encoding="utf-8") as f:
+    json.dump(output_data, f, ensure_ascii=False, indent=4)
+logging.info(f"Flight data saved to {output_path}")
 print("Flight data saved to flight_data.json")

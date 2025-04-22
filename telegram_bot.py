@@ -116,6 +116,42 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")
 
+async def flight_arrival_watcher(context: ContextTypes.DEFAULT_TYPE):
+    try:
+        logging.info("[Watcher] Checking flight ETA")
+        data = load_flight_data()
+        next_flight = data.get("next_arrival_flight")
+        if not next_flight:
+            return
+
+        eta_str = next_flight.get("destination_time")
+        if not eta_str:
+            return
+
+        now = datetime.now(pytz.timezone("America/Toronto"))
+        flight_eta = datetime.strptime(eta_str, "%H:%M").replace(
+            year=now.year, month=now.month, day=now.day, tzinfo=pytz.timezone("America/Toronto")
+        )
+
+        # Adjust for post-midnight
+        if flight_eta < now:
+            flight_eta = flight_eta.replace(day=now.day + 1)
+
+        minutes_left = (flight_eta - now).total_seconds() / 60
+
+        if 0 < minutes_left <= 5:
+            msg = f"🚨 Flight landing in approximately {int(minutes_left)} minutes!"
+            await context.bot.send_message(chat_id=6207265706, text=msg)
+
+            # Simulate /next command
+            fake_update = Update(update_id=0, message=None)
+            fake_update.effective_chat = type("Chat", (), {"id": 6207265706})
+            await next_flight(fake_update, context)
+
+    except Exception as e:
+        logging.error(f"[Watcher Error] {e}")
+
+
 def main():
     logging.info(f"Inside main Function")
     TOKEN = "6391330002:AAF7D0_8-CWgM6SijlP1PcbXjsVz2iH1OT8"
@@ -125,6 +161,8 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("next", next_flight))
     app.add_handler(CommandHandler("all_flights", all_flights))
+    # Run arrival check every 2 minutes
+    app.job_queue.run_repeating(flight_arrival_watcher, interval=120, first=10)
 
     app.bot.set_my_commands([
         BotCommand("start", "Start the bot and get help"),

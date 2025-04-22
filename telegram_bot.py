@@ -141,9 +141,10 @@ async def flight_arrival_watcher(context: ContextTypes.DEFAULT_TYPE):
             return
 
         now = datetime.now(tz)
-        flight_eta = datetime.strptime(flight_eta_str, "%H:%M").replace(
-            year=now.year, month=now.month, day=now.day, tzinfo=tz
+        naive_eta = datetime.strptime(flight_eta_str, "%H:%M").replace(
+            year=now.year, month=now.month, day=now.day
         )
+        flight_eta = tz.localize(naive_eta)
 
         if flight_eta < now:
             flight_eta = flight_eta.replace(day=now.day + 1)

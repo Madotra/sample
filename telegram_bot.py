@@ -116,7 +116,9 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.info(f"Inside all_flights Function")
         data = load_flight_data()
         flights = data.get("flights", [])
-        msg = "*All Flights:*\n"
+        total_flights = data.get("total_flights", len(flights))  # fallback in case the key is missing
+
+        msg = f"*All Flights (Total: {total_flights}):*\n\n"
         for flight in flights:
             msg += format_flight_pretty(flight)
             msg += "\n\n"

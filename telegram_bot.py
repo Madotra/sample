@@ -163,6 +163,7 @@ async def all_flights(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error reading flight data: {e}")
 
+
 # Main function to start the bot
 def main():
     logging.info(f"Inside main Function")

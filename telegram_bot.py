@@ -157,7 +157,7 @@ async def flight_arrival_watcher(context: ContextTypes.DEFAULT_TYPE):
 
         # If flight is arriving within 5 minutes, send notification + auto trigger /next
         if 0 < minutes_left <= 5:
-            eta_msg = (f"🚨 *Flight {flight.get('flight_number', 'N/A')} landing in approximately {int(minutes_left)} minute(s)*")
+            eta_msg = (f"🚨 *Flight {next_flight.get('flight_number', 'N/A')} landing in approximately {int(minutes_left)} minute(s)*")
             await context.bot.send_message(chat_id=6207265706, text=eta_msg, parse_mode=ParseMode.MARKDOWN)
             await next_flight(update=Update(update_id=0, message=None), context=context)
 

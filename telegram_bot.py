@@ -47,10 +47,10 @@ def status_icon(status):
         return "✈️"
     elif "early" in status_lower:
         return "⏱"
-    elif "Cancelled" in status_lower or "Canceled" in status_lower:
+    elif "Cancelled" in status_lower:
         return "❌"
     else:
-        return "ℹ️"
+        return "ℹ️ℹ️"
 
 def format_flight_pretty(flight):
     msg = (

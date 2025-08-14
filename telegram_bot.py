@@ -47,6 +47,8 @@ def status_icon(status):
         return "✈️"
     elif "early" in status_lower:
         return "⏱"
+    elif "cancelled" in status_lower or "canceled" in status_lower:
+        return "❌"
     else:
         return "ℹ️"
 

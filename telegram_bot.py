@@ -35,7 +35,7 @@ def load_flight_data():
 # ==== Format Flight Messages ====
 def status_icon(status):
     if not status:
-        return "ℹ️"
+        return "ℹ️ℹ️"
     status_lower = status.lower()
     if status_lower in ["arrived", "landed"]:
         return "✅"
@@ -50,7 +50,7 @@ def status_icon(status):
     elif "Cancelled" in status_lower:
         return "❌"
     else:
-        return "ℹ️ℹ️"
+        return "ℹ️️"
 
 def format_flight_pretty(flight):
     msg = (
